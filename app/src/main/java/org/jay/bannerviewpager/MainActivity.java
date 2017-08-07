@@ -35,13 +35,13 @@ public class MainActivity extends AppCompatActivity {
         mBanner1.setImages(images)
                 .start();
 
-        mBanner2.setImages(images)
-                .start();
-
-        mBanner3.setImages(images)
-                .setBannerTitles(titles)
-                .setBannerStyle(BannerViewPager.BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE)
-                .start();
+//        mBanner2.setImages(images)
+//                .start();
+//
+//        mBanner3.setImages(images)
+//                .setBannerTitles(titles)
+//                .setBannerStyle(BannerViewPager.BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE)
+//                .start();
     }
 
     private void initData() {

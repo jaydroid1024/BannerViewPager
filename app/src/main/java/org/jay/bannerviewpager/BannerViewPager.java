@@ -2,7 +2,9 @@ package org.jay.bannerviewpager;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,6 +30,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +61,7 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
     private int titleTextColor;
     private int titleTextSize;
     private int count = 0;
-    private int currentItem;
+    private int currentItem=-1;
     private int gravity = -1;
     private int lastPosition = 1;
     private int scaleType = 1;
@@ -74,8 +77,9 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
     private OnPageChangeListener mOnPageChangeListener;
     private BannerScroller mScroller;
     private OnBannerClickListener bannerListener;
-    private Handler handler;
+    private ImageHandler mImageHandler;
     public static int H,W;
+    int mIndicatorPrePosition = 0;
 
     public BannerViewPager(@NonNull Context context) {
         this(context,null);
@@ -92,10 +96,10 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         imageUrls = new ArrayList<>();
         imageViews = new ArrayList<>();
         indicatorImages = new ArrayList<>();
-        handler = new Handler();
         DisplayMetrics dm = getResources().getDisplayMetrics();
         H=dm.heightPixels;
         W=dm.widthPixels;
+        mImageHandler=new ImageHandler(this);
         initView(context,attrs);
     }
 
@@ -229,9 +233,6 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         mOnPageChangeListener = onPageChangeListener;
     }
 
-    public void releaseBanner() {
-        handler.removeCallbacksAndMessages(null);
-    }
 
     public BannerViewPager start() {
         setBannerStyleUI();
@@ -239,9 +240,6 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         setData();
         return this;
     }
-
-
-
 
     private void setBannerStyleUI() {
         int visibility;
@@ -300,6 +298,7 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         for (int i = 0; i < count; i++) {
             ImageView imageView=new ImageView(context);
             setScaleType(imageView);
+            imageView.setBackgroundColor(Color.parseColor("#5"+i+"98"+"a"+i));
 //            Glide.with(context).load(imagesUrl.get(i)).into(imageView);
             imageViews.add(imageView);
         }
@@ -373,14 +372,14 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
     }
 
     private void setData() {
-        currentItem = 1;
+        currentItem = 0;
         if (adapter == null) {
             adapter = new BannerPagerAdapter();
             viewPager.addOnPageChangeListener(this);
         }
         viewPager.setAdapter(adapter);
         viewPager.setFocusable(true);
-        viewPager.setCurrentItem(1);
+        viewPager.setCurrentItem(4);
         if (gravity != -1)
             indicator.setGravity(gravity);
         if (isAutoPlay)
@@ -388,32 +387,15 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
     }
 
     public void startAutoPlay() {
-        handler.removeCallbacks(task);
-        handler.postDelayed(task, delayTime);
+        if (count > 1) {
+            mImageHandler.sendEmptyMessageDelayed(ImageHandler.MSG_UPDATE_IMAGE, delayTime);
+        }
     }
 
     public void stopAutoPlay() {
-        handler.removeCallbacks(task);
+        mImageHandler.sendEmptyMessage(ImageHandler.MSG_KEEP_SILENT);
     }
 
-    private final Runnable task = new Runnable() {
-        @Override
-        public void run() {
-            if (count > 1 && isAutoPlay) {
-                if(currentItem==count){
-                    currentItem=0;
-                }
-                Log.i(TAG, "curr:" + currentItem + " count:" + count);
-//                if (currentItem == 1) {
-//                    viewPager.setCurrentItem(currentItem++, false);
-//                    handler.post(task);
-//                } else {
-                    viewPager.setCurrentItem(currentItem++);
-                    handler.postDelayed(task, delayTime);
-//                }
-            }
-        }
-    };
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -436,22 +418,22 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         if (mOnPageChangeListener != null) {
             mOnPageChangeListener.onPageScrolled(position, positionOffset, positionOffsetPixels);
         }
+        mImageHandler.sendMessage(Message.obtain(mImageHandler, ImageHandler.MSG_PAGE_CHANGED, position, 0));
+
     }
-    int mPrePosition = 0;
     @Override
     public void onPageSelected(int position) {
         if (mOnPageChangeListener != null) {
             mOnPageChangeListener.onPageSelected(position);
         }
+
         if (bannerStyle == BannerConfig.CIRCLE_INDICATOR ||
                 bannerStyle == BannerConfig.CIRCLE_INDICATOR_TITLE ||
                 bannerStyle == BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE) {
             indicatorImages.get(position % count).setBackgroundResource(mIndicatorSelectedResId);
-            indicatorImages.get(mPrePosition % count).setBackgroundResource(mIndicatorUnselectedResId);
-            mPrePosition = position;
+            indicatorImages.get(mIndicatorPrePosition % count).setBackgroundResource(mIndicatorUnselectedResId);
+            mIndicatorPrePosition = position;
         }
-//        if (position == 0) position = count;
-//        if (position > count) position = 0;
         switch (bannerStyle) {
             case BannerConfig.CIRCLE_INDICATOR:
                 break;
@@ -476,23 +458,14 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         if (mOnPageChangeListener != null) {
             mOnPageChangeListener.onPageScrollStateChanged(state);
         }
-        currentItem = viewPager.getCurrentItem();
         switch (state) {
-            case 0://No operation
-                if (currentItem == 0) {
-                    viewPager.setCurrentItem(count, false);
-                } else if (currentItem == count) {
-                    viewPager.setCurrentItem(0, false);
-                }
+            case ViewPager.SCROLL_STATE_DRAGGING:
+                stopAutoPlay();
                 break;
-            case 1://start Sliding
-                if (currentItem == count) {
-                    viewPager.setCurrentItem(0, false);
-                } else if (currentItem == 0) {
-                    viewPager.setCurrentItem(count, false);
-                }
+            case ViewPager.SCROLL_STATE_IDLE:
+                startAutoPlay();
                 break;
-            case 2://end Sliding
+            default:
                 break;
         }
     }
@@ -516,7 +489,6 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
             params.width=W;
             params.height=W/4*3;
             view.setLayoutParams(params);
-            Log.d("jay", "url="+imageUrls.get(position));
             Glide.with(context).load(imageUrls.get(position)).into(view);
             if (bannerListener != null) {
                 view.setOnClickListener(new View.OnClickListener() {
@@ -526,7 +498,7 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
                     }
                 });
             }
-            container.addView(imageViews.get(position));
+            container.addView(view);
             return view;
         }
 
@@ -537,9 +509,77 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
 
     }
 
-
     public interface OnBannerClickListener {
         public void OnBannerClick(int position);
+    }
+
+    private static class ImageHandler extends Handler {
+        WeakReference<BannerViewPager> mWeakReference;
+        private BannerViewPager mBannerViewPager;
+
+        public ImageHandler(BannerViewPager bannerViewPager) {
+            mWeakReference =new WeakReference<BannerViewPager>(bannerViewPager);
+        }
+
+        /**
+         * 请求更新显示的View。
+         */
+        protected static final int MSG_UPDATE_IMAGE = 1;
+        /**
+         * 请求暂停轮播。
+         */
+        protected static final int MSG_KEEP_SILENT = 2;
+        /**
+         * 请求恢复轮播。
+         */
+        protected static final int MSG_BREAK_SILENT = 3;
+        /**
+         * 记录最新的页号。
+         */
+        protected static final int MSG_PAGE_CHANGED = 4;
+
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (mWeakReference == null) {
+                return;
+            }
+            mBannerViewPager = mWeakReference.get();
+
+            //检查消息队列并移除未发送的消息，这主要是避免在复杂环境下消息出现重复等问题。
+            if (mBannerViewPager.mImageHandler.hasMessages(MSG_UPDATE_IMAGE)) {
+                mBannerViewPager.mImageHandler.removeMessages(MSG_UPDATE_IMAGE);
+            }
+            switch (msg.what) {
+                case MSG_UPDATE_IMAGE:
+                    Log.d("jay", "handleMessage: [msg]="+MSG_UPDATE_IMAGE+"--"+mBannerViewPager.imageViews.size()+"--"+mBannerViewPager.currentItem);
+                    if (mBannerViewPager.currentItem == mBannerViewPager.count) {
+                        mBannerViewPager.currentItem = -1;
+                    }
+                    mBannerViewPager.currentItem+=1;
+                    mBannerViewPager.viewPager.setCurrentItem(mBannerViewPager.currentItem);
+                    //准备下次播放
+                    mBannerViewPager.mImageHandler.sendEmptyMessageDelayed(MSG_UPDATE_IMAGE, mBannerViewPager.delayTime);
+                    break;
+                case MSG_KEEP_SILENT:
+                    Log.d("jay", "handleMessage: [msg]="+MSG_KEEP_SILENT);
+                    //只要不发送消息就暂停了
+                    break;
+                case MSG_BREAK_SILENT:
+                    Log.d("jay", "handleMessage: [msg]="+MSG_BREAK_SILENT);
+                    mBannerViewPager.mImageHandler.sendEmptyMessageDelayed(MSG_UPDATE_IMAGE, mBannerViewPager.delayTime);
+                    break;
+                case MSG_PAGE_CHANGED:
+                    Log.d("jay", "handleMessage: [msg]="+MSG_PAGE_CHANGED);
+                    //记录当前的页号，避免播放的时候页面显示不正确。
+                    mBannerViewPager.currentItem = msg.arg1;
+                    mBannerViewPager.mImageHandler.sendEmptyMessageDelayed(MSG_UPDATE_IMAGE, mBannerViewPager.delayTime);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     class BannerConfig {
@@ -577,7 +617,6 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         public static final int TITLE_TEXT_SIZE = -1;
 
     }
-
 
     class BannerScroller extends Scroller {
         private int mDuration = BannerConfig.DURATION;

@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 
 import com.bumptech.glide.Glide;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -42,7 +43,7 @@ public class BannerImageHelper {
         this.mBannersList = bannersList;
         mImageLoader = imageLoader;
         NUM_PAGES = mBannersList.size();
-        mImageHandler = new ImageHandler();
+        mImageHandler = new ImageHandler(this);
         initialize();
     }
 
@@ -62,10 +63,6 @@ public class BannerImageHelper {
 
             @Override
             public void onPageSelected(int position) {
-                //dot
-//                mImageViewTips.get(position % mBannersList.size()).setBackgroundResource(R.drawable.draw_solid_circle_orange);
-//                mImageViewTips.get(mPrePosition % mBannersList.size()).setBackgroundResource(R.drawable.draw_solid_circle_grey);
-//                mPrePosition = position;
 
                 mImageHandler.sendMessage(Message.obtain(mImageHandler, ImageHandler.MSG_PAGE_CHANGED, position, 0));
             }
@@ -115,7 +112,7 @@ public class BannerImageHelper {
     }
 
 
-    private class CustomAdapter extends PagerAdapter {
+    private  class CustomAdapter extends PagerAdapter {
         private Context context;
         private List<Object> imageList = new ArrayList<>();
 
@@ -170,7 +167,13 @@ public class BannerImageHelper {
         void onBannerSelected(int position);
     }
 
-    private class ImageHandler extends Handler {
+    private static class ImageHandler extends Handler {
+        WeakReference<BannerImageHelper> mWeakBannerImageHelper;
+        private BannerImageHelper mBannerImageHelper;
+
+        public ImageHandler(BannerImageHelper bannerImageHelper) {
+            mWeakBannerImageHelper =new WeakReference<BannerImageHelper>(bannerImageHelper);
+        }
 
         /**
          * 请求更新显示的View。
@@ -197,30 +200,35 @@ public class BannerImageHelper {
 
         @Override
         public void handleMessage(Message msg) {
+            if (mWeakBannerImageHelper != null) {
+                mBannerImageHelper = mWeakBannerImageHelper.get();
+            }else{
+                return;
+            }
             super.handleMessage(msg);
             //检查消息队列并移除未发送的消息，这主要是避免在复杂环境下消息出现重复等问题。
-            if (mImageHandler.hasMessages(MSG_UPDATE_IMAGE)) {
-                mImageHandler.removeMessages(MSG_UPDATE_IMAGE);
+            if (mBannerImageHelper.mImageHandler.hasMessages(MSG_UPDATE_IMAGE)) {
+                mBannerImageHelper.mImageHandler.removeMessages(MSG_UPDATE_IMAGE);
             }
             switch (msg.what) {
                 case MSG_UPDATE_IMAGE:
-                    if (currentItem == NUM_PAGES) {
+                    if (currentItem == mBannerImageHelper.NUM_PAGES) {
                         currentItem = 0;
                     }
-                    sliderViewPager.setCurrentItem(currentItem++);
+                    mBannerImageHelper.sliderViewPager.setCurrentItem(currentItem++);
                     //准备下次播放
-                    mImageHandler.sendEmptyMessageDelayed(MSG_UPDATE_IMAGE, MSG_DELAY);
+                    mBannerImageHelper.mImageHandler.sendEmptyMessageDelayed(MSG_UPDATE_IMAGE, MSG_DELAY);
                     break;
                 case MSG_KEEP_SILENT:
                     //只要不发送消息就暂停了
                     break;
                 case MSG_BREAK_SILENT:
-                    mImageHandler.sendEmptyMessageDelayed(MSG_UPDATE_IMAGE, MSG_DELAY);
+                    mBannerImageHelper.mImageHandler.sendEmptyMessageDelayed(MSG_UPDATE_IMAGE, MSG_DELAY);
                     break;
                 case MSG_PAGE_CHANGED:
                     //记录当前的页号，避免播放的时候页面显示不正确。
                     currentItem = msg.arg1;
-                    mImageHandler.sendEmptyMessageDelayed(MSG_UPDATE_IMAGE, MSG_DELAY);
+                    mBannerImageHelper.mImageHandler.sendEmptyMessageDelayed(MSG_UPDATE_IMAGE, MSG_DELAY);
                     break;
                 default:
                     break;
