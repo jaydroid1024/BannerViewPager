@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
+            android:background="#ccc"
             android:layout_height="match_parent">
 
     <LinearLayout
@@ -9,31 +10,39 @@
         android:orientation="vertical">
 
         <org.jay.bannerviewpager.BannerViewPager
+            android:layout_marginTop="10dp"
             android:id="@+id/banner1"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             app:indicator_height="8dp"
+            app:indicator_width="8dp"
             app:indicator_margin="4dp"
-            app:indicator_width="8dp"/>
+            />
 
         <org.jay.bannerviewpager.BannerViewPager
+            android:layout_marginTop="10dp"
             android:id="@+id/banner2"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="200dp"
+            app:indicator_drawable_selected="@drawable/dot_selected_rect"
+            app:indicator_drawable_unselected="@drawable/dot_normal_rect"
             app:indicator_height="4dp"
             app:indicator_margin="4dp"
             app:indicator_width="20dp"/>
 
         <org.jay.bannerviewpager.BannerViewPager
+            android:layout_marginTop="10dp"
             android:id="@+id/banner3"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             app:title_background="#555CB85C"
             app:title_height="30dp"
+            app:indicator_height="8dp"
+            app:indicator_width="8dp"
             app:title_textcolor="@android:color/white"
-            app:title_textsize="10sp"/>
+            app:title_textsize="15sp"/>
     </LinearLayout>
 </ScrollView>

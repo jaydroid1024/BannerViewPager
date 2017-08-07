@@ -3,6 +3,10 @@ package org.jay.bannerviewpager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import org.jay.bannerviewpager.transformer.CubeInTransformer;
+import org.jay.bannerviewpager.transformer.FlipVerticalTransformer;
+import org.jay.bannerviewpager.transformer.RotateDownTransformer;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,15 +37,20 @@ public class MainActivity extends AppCompatActivity {
 
     private void initBanner() {
         mBanner1.setImages(images)
+                .setPageTransformer(true, new CubeInTransformer())
                 .start();
 
-//        mBanner2.setImages(images)
-//                .start();
-//
-//        mBanner3.setImages(images)
-//                .setBannerTitles(titles)
-//                .setBannerStyle(BannerViewPager.BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE)
-//                .start();
+        mBanner2.setImages(images)
+                .setPageTransformer(false, new FlipVerticalTransformer())
+                .setDelayTime(1500)
+                .start();
+
+        mBanner3.setImages(images)
+                .setDelayTime(1000)
+                .setPageTransformer(true, new RotateDownTransformer())
+                .setBannerTitles(titles)
+                .setBannerStyle(BannerViewPager.BannerConfig.CIRCLE_INDICATOR_TITLE_INSIDE)
+                .start();
     }
 
     private void initData() {
