@@ -5,7 +5,7 @@
 在 [banner](https://github.com/youth5201314/banner) 的基础上进行了修改和简化以及扩展了一些功能，你也可以根据自己的业务需求进行定制化修改
 
 # Screenshot
-![](images/screenshort.jpg)
+![](images/screenshot.jpg)
 
 ![](images/viewpager.gif)
 
