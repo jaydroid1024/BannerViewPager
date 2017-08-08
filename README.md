@@ -5,11 +5,11 @@
 在 [banner](https://github.com/youth5201314/banner) 的基础上进行了修改和简化以及扩展了一些功能，你也可以根据自己的业务需求进行定制化修改
 
 # Screenshot
-![](images/screenshort.jeg)
+![](images/screenshort.jpg)
 
 ![](images/viewpager.gif)
 
-#Use
+# Use
 ![](images/code.png)
 
 其它的一些属性或方法请参考 [banner](https://github.com/youth5201314/banner) 
