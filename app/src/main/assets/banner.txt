@@ -1,0 +1,80 @@
+{
+    "code": 1,
+    "message": "SUCCESS",
+    "data": {
+        "timestamp": "2017-08-08",
+        "total": 5,
+        "banners": [
+            {
+                "id": 8,
+                "title": "Member Satisfaction Survey",
+                "landing_page": 1,
+                "type": 1,
+                "description": "",
+                "link": "",
+                "target_url": "http://tiny.cc/reworksurvey",
+                "image": "https://s3-ap-southeast-1.amazonaws.com/rework-bucket-live/communityBanners/7dc1aef3af7e790023f4906dae750443.jpg",
+                "sort": 0,
+                "deleted": 0,
+                "created_at": "2017-06-08 16:23:57",
+                "updated_at": "2017-06-09 10:33:27"
+            },
+            {
+                "id": 2,
+                "title": "New Location Kuningan",
+                "landing_page": 0,
+                "type": 1,
+                "description": "New Location Kuningan",
+                "link": "3",
+                "target_url": "",
+                "image": "https://s3-ap-southeast-1.amazonaws.com/rework-bucket-live/communityBanners/47046298e457d5c304188a1d3d718acd.jpg",
+                "sort": 1,
+                "deleted": 0,
+                "created_at": "2017-04-20 14:58:02",
+                "updated_at": "2017-04-25 16:51:18"
+            },
+            {
+                "id": 3,
+                "title": "Rework App",
+                "landing_page": 0,
+                "type": 1,
+                "description": "Rework App",
+                "link": "1",
+                "target_url": "",
+                "image": "https://s3-ap-southeast-1.amazonaws.com/rework-bucket-live/communityBanners/55cb8a7cf61c950ed5e8814c23ead0d9.jpg",
+                "sort": 2,
+                "deleted": 0,
+                "created_at": "2017-04-20 14:58:24",
+                "updated_at": "2017-04-21 11:26:07"
+            },
+            {
+                "id": 4,
+                "title": "Rework Balance",
+                "landing_page": 0,
+                "type": 1,
+                "description": "Rework Balance",
+                "link": "1",
+                "target_url": "",
+                "image": "https://s3-ap-southeast-1.amazonaws.com/rework-bucket-live/communityBanners/4b8d75d5a2152543ec387826c9c2c330.jpg",
+                "sort": 3,
+                "deleted": 0,
+                "created_at": "2017-04-20 14:58:49",
+                "updated_at": "2017-04-21 11:27:17"
+            },
+            {
+                "id": 5,
+                "title": "Become a Member",
+                "landing_page": 0,
+                "type": 1,
+                "description": "Become a member",
+                "link": "1",
+                "target_url": "",
+                "image": "https://s3-ap-southeast-1.amazonaws.com/rework-bucket-live/communityBanners/34acc8c5119227ce22202893723a4623.jpg",
+                "sort": 4,
+                "deleted": 0,
+                "created_at": "2017-04-20 14:59:28",
+                "updated_at": "2017-04-21 11:27:32"
+            }
+        ]
+    }
+}

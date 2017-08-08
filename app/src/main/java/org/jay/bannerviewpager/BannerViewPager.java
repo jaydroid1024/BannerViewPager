@@ -29,6 +29,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import org.jay.bannerviewpager.module.Banner;
+
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -65,7 +67,7 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
     private int lastPosition = 1;
     private int scaleType = 1;
     private List<String> titles;
-    private List imageUrls;
+    private List bannerList;
     private List<ImageView> imageViews;
     private List<ImageView> indicatorImages;
     private Context context;
@@ -92,7 +94,7 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         super(context, attrs, defStyleAttr);
         this.context = context;
         titles = new ArrayList<>();
-        imageUrls = new ArrayList<>();
+        bannerList = new ArrayList<>();
         imageViews = new ArrayList<>();
         indicatorImages = new ArrayList<>();
         DisplayMetrics dm = getResources().getDisplayMetrics();
@@ -218,8 +220,13 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
     }
 
     public BannerViewPager setImages(List<?> imageUrls) {
-        this.imageUrls = imageUrls;
+        this.bannerList = imageUrls;
         this.count = imageUrls.size();
+        return this;
+    }
+    public BannerViewPager setModule(List<?> module) {
+        this.bannerList = module;
+        this.count = bannerList.size();
         return this;
     }
 
@@ -234,8 +241,8 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
 
 
     public BannerViewPager start() {
+        setImageList(bannerList);
         setBannerStyleUI();
-        setImageList(imageUrls);
         setData();
         return this;
     }
@@ -266,7 +273,7 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         }
     }
     private void setTitleStyleUI() {
-        if (titles.size() != imageUrls.size()) {
+        if (titles.size() != bannerList.size()) {
             throw new RuntimeException("[Banner] --> The number of titles and images is different");
         }
         if (titleBackground != -1) {
@@ -288,19 +295,27 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
         }
     }
 
-    private void setImageList(List<String> imagesUrl) {
+    private void setImageList(List<?> imagesUrl) {
         if (imagesUrl == null || imagesUrl.size() <= 0) {
             Log.e(TAG, "Please set the images data.");
             return;
         }
-        initImages();
+        initIndicator();
         for (int i = 0; i < count; i++) {
             ImageView imageView=new ImageView(context);
             setScaleType(imageView);
-            Glide.with(context).load(imagesUrl.get(i)).into(imageView);
+            Object object=imagesUrl.get(i);
+            if(object instanceof String){
+                Glide.with(context).load(imagesUrl.get(i)).into(imageView);
+            }else if(object instanceof Banner.DataBean.BannersBean){
+                Banner.DataBean.BannersBean bannersBean = (Banner.DataBean.BannersBean) imagesUrl.get(i);
+                Glide.with(context).load(bannersBean.getImage()).into(imageView);
+                titles.add(bannersBean.getTitle());
+            }
             imageViews.add(imageView);
         }
     }
+
     private void setScaleType(View imageView) {
         if (imageView instanceof ImageView) {
             ImageView view = ((ImageView) imageView);
@@ -333,7 +348,7 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
 
         }
     }
-    private void initImages() {
+    private void initIndicator() {
         imageViews.clear();
         if (bannerStyle == BannerConfig.CIRCLE_INDICATOR ||
                 bannerStyle == BannerConfig.CIRCLE_INDICATOR_TITLE ||
@@ -487,7 +502,6 @@ public class BannerViewPager extends FrameLayout implements OnPageChangeListener
             params.width=W;
             params.height=W/4*3;
             view.setLayoutParams(params);
-            Glide.with(context).load(imageUrls.get(position)).into(view);
             if (bannerListener != null) {
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
